@@ -161,37 +161,3 @@ POST /executor/task/load?count=10&sleepMs=3000
 | `scale.scale-up.delta` | 2 | 扩容步长 |
 | `scale.scale-down.active-thread-ratio` | 0.3 | 缩容触发比例 |
 | `scale.scale-down.consecutive-checks` | 4 | 缩容连续达标次数 |
-
-## 技术知识点
-
-### ThreadPoolExecutor 线程池原理
-
-1. 新任务到来，线程数 < corePoolSize → 创建新线程直接执行
-2. 线程数 >= corePoolSize → 任务放入等待队列
-3. 等待队列已满，线程数 < maximumPoolSize → 创建新线程执行
-4. 等待队列已满，线程数 >= maximumPoolSize → 执行拒绝策略
-
-### 四种队列
-
-| 队列 | 特点 |
-|------|------|
-| LinkedBlockingQueue | 基于链表，可选有界/无界，吞吐量高 |
-| ArrayBlockingQueue | 基于数组，必须有界，内存占用低 |
-| SynchronousQueue | 不存储元素，直接交付 |
-| PriorityBlockingQueue | 基于优先级排序 |
-
-### 四种拒绝策略
-
-| 策略 | 行为 |
-|------|------|
-| CallerRunsPolicy | 由调用者线程执行 |
-| AbortPolicy | 抛出异常 |
-| DiscardPolicy | 静默丢弃 |
-| DiscardOldestPolicy | 丢弃队列头部任务 |
-
-### 动态重配设计要点
-
-- **volatile** — 保证线程池引用多线程可见性
-- **synchronized** — 保证配置修改原子性
-- **shutdown()** — 优雅关闭旧线程池，确保已提交任务执行完毕
-- **全量重建** — applyConfig 每次都先更新属性再重建线程池
