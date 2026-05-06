@@ -1,7 +1,7 @@
-package com.abioclaw.dynamicexecutor.util;
+package com.gaofeng.dynamicexecutor.util;
 
-import com.abioclaw.dynamicexecutor.config.ThreadPoolProperties;
-import com.abioclaw.dynamicexecutor.dto.ThreadPoolConfigDTO;
+import com.gaofeng.dynamicexecutor.config.ThreadPoolProperties;
+import com.gaofeng.dynamicexecutor.dto.ThreadPoolConfigDTO;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.Getter;
@@ -10,20 +10,19 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.*;
 
 /**
- * 线程池管理器，支持运行时动态重建线程池。
+ * 线程池管理器，支持运行时动态重建线程池
  *
- * 关键技术点：
+ * 关键技术：
  * - volatile 保证 executor 引用多线程可见性
- * - synchronized 保证重配原子性
+ * - synchronized 保证 applyConfig 原子性
  * - 每次配置变更都更新 Properties 再重建线程池
  */
 @Service
+@Getter
 public class ThreadPoolManager {
 
     /** volatile 保证重建后其他线程立即可见新实例 */
-    @Getter
     private volatile ThreadPoolExecutor executor;
-
     private final ThreadPoolProperties properties;
 
     public ThreadPoolManager(ThreadPoolProperties properties) {
@@ -49,6 +48,7 @@ public class ThreadPoolManager {
         recreateExecutor();
     }
 
+    /** 获取当前线程池配置 */
     public ThreadPoolConfigDTO getCurrentConfig() {
         ThreadPoolConfigDTO dto = new ThreadPoolConfigDTO();
         dto.setCorePoolSize(properties.getCorePoolSize());
@@ -118,7 +118,7 @@ public class ThreadPoolManager {
     }
 
     /**
-     * 四种队列：LinkedBlockingQueue / ArrayBlockingQueue / SynchronousQueue / PriorityBlockingQueue
+     * 四种队列：LinkedBlockingQueue/ArrayBlockingQueue/SynchronousQueue/PriorityBlockingQueue
      */
     private BlockingQueue<Runnable> createQueue(String type, int capacity) {
         return switch (type.toUpperCase()) {
@@ -129,9 +129,7 @@ public class ThreadPoolManager {
         };
     }
 
-    /**
-     * 四种拒绝策略：CallerRunsPolicy / AbortPolicy / DiscardPolicy / DiscardOldestPolicy
-     */
+    /** 四种拒绝策略：CallerRunsPolicy/AbortPolicy/DiscardPolicy/DiscardOldestPolicy */
     private RejectedExecutionHandler createRejectedHandler(String policy) {
         return switch (policy.toUpperCase()) {
             case "ABORT" -> new ThreadPoolExecutor.AbortPolicy();

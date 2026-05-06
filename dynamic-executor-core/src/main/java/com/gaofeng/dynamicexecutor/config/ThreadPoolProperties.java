@@ -1,14 +1,13 @@
-package com.abioclaw.dynamicexecutor.config;
+package com.gaofeng.dynamicexecutor.config;
 
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import lombok.Data;
-
 /**
  * 线程池配置属性，绑定 application.yml 中 thread.pool.* 配置
- * 
- * @ConfigurationProperties 类型安全配置绑定
+ *
+ * @ConfigurationProperties 类型安全的配置绑定
  */
 @Component
 @ConfigurationProperties(prefix = "thread.pool")

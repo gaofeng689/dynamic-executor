@@ -1,0 +1,56 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: dynamic-executor
+  boot:
+    admin:
+      client:
+        url: http://localhost:9090
+  datasource:
+    url: jdbc:mysql://localhost:3306/dynamic_executor?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+      table-prefix: de_
+
+thread:
+  pool:
+    core-pool-size: 2
+    maximum-pool-size: 4
+    keep-alive-time: 30
+    time-unit: SECONDS
+    queue-type: LINKED_BLOCKING
+    queue-capacity: 50
+    rejected-policy: CALLER_RUNS
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+metrics:
+  collection-interval-seconds: 10
+  retention-hours: 24
+
+scale:
+  enabled: true
+  check-interval-seconds: 15
+  scale-up:
+    queue-usage-percent: 80
+    delta: 2
+  scale-down:
+    active-thread-ratio: 0.3
+    consecutive-checks: 4
