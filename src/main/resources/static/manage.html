@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>线程池管理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; background: #f0f2f5; color: #333; }
+        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        h1 { text-align: center; margin-bottom: 30px; color: #1a1a2e; }
+        .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 28px; margin-bottom: 24px; }
+        .card h2 { font-size: 18px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #4a6cf7; color: #1a1a2e; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+        .form-group input, .form-group select { padding: 10px 12px; border: 1px solid #d9d9d9; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #4a6cf7; box-shadow: 0 0 0 3px rgba(74,108,247,0.1); }
+        .form-group input.error, .form-group select.error { border-color: #cf1322; }
+        .btn-row { display: flex; gap: 12px; margin-top: 24px; }
+        .btn { padding: 10px 28px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: #4a6cf7; color: #fff; }
+        .btn-primary:hover { background: #3a5ce5; }
+        .btn-reset { background: #e8ecf1; color: #555; }
+        .btn-reset:hover { background: #d5dbe3; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .info-table { width: 100%; border-collapse: collapse; }
+        .info-table td { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        .info-table td:first-child { font-weight: 600; color: #666; width: 140px; }
+        .info-table td:last-child { font-family: 'Consolas', 'Courier New', monospace; color: #1a1a2e; }
+        .tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .tag-green { background: #e6f7e6; color: #2e7d32; }
+        .tag-orange { background: #fff3e0; color: #e65100; }
+        .msg { padding: 10px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+        .msg-success { background: #e6f7e6; color: #2e7d32; border: 1px solid #b7eb8f; display: block; }
+        .msg-error { background: #fff2f0; color: #cf1322; border: 1px solid #ffccc7; display: block; }
+        .refresh-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .refresh-bar span { font-size: 13px; color: #888; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>线程池动态管理</h1>
+
+    <div id="msgBox" class="msg"></div>
+
+    <div class="card">
+        <h2>线程池实时状态</h2>
+        <div class="refresh-bar">
+            <button class="btn btn-reset" onclick="refreshInfo()" style="padding:6px 16px;">刷新状态</button>
+            <span id="refreshTime"></span>
+        </div>
+        <table class="info-table" id="infoTable">
+            <tr><td colspan="2" style="text-align:center;color:#999;">加载中...</td></tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>修改线程池配置</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>核心线程数 (corePoolSize)</label>
+                <input type="number" id="corePoolSize" min="1" max="500" onchange="validateCoreMax()">
+            </div>
+            <div class="form-group">
+                <label>最大线程数 (maximumPoolSize)</label>
+                <input type="number" id="maximumPoolSize" min="1" max="500" onchange="validateCoreMax()">
+            </div>
+            <div class="form-group">
+                <label>存活时间 (keepAliveTime)</label>
+                <input type="number" id="keepAliveTime" min="0">
+            </div>
+            <div class="form-group">
+                <label>时间单位 (timeUnit)</label>
+                <select id="timeUnit">
+                    <option value="SECONDS">SECONDS - 秒</option>
+                    <option value="MINUTES">MINUTES - 分钟</option>
+                    <option value="HOURS">HOURS - 小时</option>
+                    <option value="DAYS">DAYS - 天</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>队列类型 (queueType)</label>
+                <select id="queueType">
+                    <option value="LINKED_BLOCKING">LinkedBlockingQueue</option>
+                    <option value="ARRAY_BLOCKING">ArrayBlockingQueue</option>
+                    <option value="SYNCHRONOUS">SynchronousQueue</option>
+                    <option value="PRIORITY_BLOCKING">PriorityBlockingQueue</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>队列长度 (queueCapacity)</label>
+                <input type="number" id="queueCapacity" min="0" max="100000">
+            </div>
+            <div class="form-group">
+                <label>拒绝策略 (rejectedPolicy)</label>
+                <select id="rejectedPolicy">
+                    <option value="CALLER_RUNS">CallerRunsPolicy</option>
+                    <option value="ABORT">AbortPolicy</option>
+                    <option value="DISCARD">DiscardPolicy</option>
+                    <option value="DISCARD_OLDEST">DiscardOldestPolicy</option>
+                </select>
+            </div>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-primary" onclick="applyConfig()">应用配置（即时生效）</button>
+            <button class="btn btn-reset" onclick="loadConfig()">重置表单</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const API_BASE = '';
+
+function showMsg(text, type) {
+    const box = document.getElementById('msgBox');
+    box.textContent = text;
+    box.className = 'msg msg-' + type;
+    setTimeout(() => { box.className = 'msg'; }, 4000);
+}
+
+function validateCoreMax() {
+    const core = parseInt(document.getElementById('corePoolSize').value);
+    const max = parseInt(document.getElementById('maximumPoolSize').value);
+    const coreInput = document.getElementById('corePoolSize');
+    const maxInput = document.getElementById('maximumPoolSize');
+    if (!isNaN(core) && !isNaN(max) && core > max) {
+        coreInput.classList.add('error');
+        maxInput.classList.add('error');
+        return false;
+    } else {
+        coreInput.classList.remove('error');
+        maxInput.classList.remove('error');
+        return true;
+    }
+}
+
+async function refreshInfo() {
+    try {
+        const resp = await fetch(API_BASE + '/executor');
+        if (!resp.ok) throw new Error(await resp.text());
+        const data = await resp.json();
+        document.getElementById('infoTable').innerHTML = buildInfoRows(data);
+        document.getElementById('refreshTime').textContent = '最后更新: ' + new Date().toLocaleTimeString();
+    } catch (e) {
+        document.getElementById('infoTable').innerHTML = '<tr><td colspan="2" style="text-align:center;color:#cf1322;">获取状态失败</td></tr>';
+    }
+}
+
+function buildInfoRows(data) {
+    const keys = ['核心线程数','最大线程数','当前线程数','活跃线程数','已完成任务数','总任务数','队列类型','队列大小','队列剩余容量','存活时间','拒绝策略'];
+    let html = '';
+    keys.forEach(k => {
+        const v = (data[k] != null ? data[k] : '-');
+        let tag = '';
+        if (k === '活跃线程数' && parseInt(v) > 0) tag = ' <span class="tag tag-green">运行中</span>';
+        else if (k === '队列大小' && parseInt(v) > 0) tag = ' <span class="tag tag-orange">有积压</span>';
+        html += '<tr><td>' + k + '</td><td>' + v + tag + '</td></tr>';
+    });
+    return html;
+}
+
+async function loadConfig() {
+    try {
+        const resp = await fetch(API_BASE + '/executor/config');
+        if (!resp.ok) throw new Error(await resp.text());
+        const cfg = await resp.json();
+        document.getElementById('corePoolSize').value = cfg.corePoolSize;
+        document.getElementById('maximumPoolSize').value = cfg.maximumPoolSize;
+        document.getElementById('keepAliveTime').value = cfg.keepAliveTime;
+        document.getElementById('timeUnit').value = cfg.timeUnit;
+        document.getElementById('queueType').value = cfg.queueType;
+        document.getElementById('queueCapacity').value = cfg.queueCapacity;
+        document.getElementById('rejectedPolicy').value = cfg.rejectedPolicy;
+        validateCoreMax();
+    } catch (e) {
+        showMsg('获取配置失败: ' + e.message, 'error');
+    }
+}
+
+async function applyConfig() {
+    if (!validateCoreMax()) {
+        showMsg('核心线程数不能大于最大线程数', 'error');
+        return;
+    }
+    const btn = document.querySelector('.btn-primary');
+    btn.disabled = true;
+    btn.textContent = '提交中...';
+    try {
+        const dto = {
+            corePoolSize: parseInt(document.getElementById('corePoolSize').value),
+            maximumPoolSize: parseInt(document.getElementById('maximumPoolSize').value),
+            keepAliveTime: parseInt(document.getElementById('keepAliveTime').value),
+            timeUnit: document.getElementById('timeUnit').value,
+            queueType: document.getElementById('queueType').value,
+            queueCapacity: parseInt(document.getElementById('queueCapacity').value),
+            rejectedPolicy: document.getElementById('rejectedPolicy').value
+        };
+        const resp = await fetch(API_BASE + '/executor/config', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dto)
+        });
+        if (!resp.ok) {
+            const errText = await resp.text();
+            let errMsg = errText;
+            try { const errJson = JSON.parse(errText); errMsg = errJson.message || errText; } catch (_) {}
+            throw new Error(errMsg);
+        }
+        showMsg('配置已即时生效！', 'success');
+        await loadConfig();
+        await refreshInfo();
+    } catch (e) {
+        showMsg('应用配置失败: ' + e.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '应用配置（即时生效）';
+    }
+}
+
+loadConfig();
+refreshInfo();
+</script>
+</body>
+</html>
