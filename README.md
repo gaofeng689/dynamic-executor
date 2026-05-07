@@ -13,7 +13,9 @@ dynamic_executor/
 │   └── src/main/java/com/gaofeng/dynamicexecutor/
 │       ├── DynamicExecutorApplication.java    # 启动类
 │       ├── config/
-│       │   └── ThreadPoolProperties.java      # 线程池配置属性
+│       │   ├── ThreadPoolProperties.java      # 线程池配置属性（@ConfigurationProperties）
+│       │   ├── MyBatisPlusConfig.java         # MyBatis-Plus 配置
+│       │   └── SqlLogInterceptor.java         # SQL 日志拦截器（打印完整执行语句）
 │       ├── controller/
 │       │   └── ExecutorController.java        # REST 接口控制器
 │       ├── dto/

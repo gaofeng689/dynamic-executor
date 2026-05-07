@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>线程池管�?/title>
+    <title>线程池管�?/title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -66,31 +66,31 @@
 </head>
 <body>
 <div class="header">
-    <h1>线程池动态管�?/h1>
+    <h1>线程池动态管�?/h1>
 </div>
 
 <div id="msgBox" class="msg"></div>
 
 <div class="main">
-    <!-- 左侧：实时状�?-->
+    <!-- 左侧：实时状�?-->
     <div class="card left-panel">
-        <h2>实时状�?/h2>
+        <h2>实时状�?/h2>
         <div class="refresh-bar">
-            <button class="btn btn-reset" onclick="refreshInfo()" style="padding:5px 14px;">刷新状�?/button>
+            <button class="btn btn-reset" onclick="refreshInfo()" style="padding:5px 14px;">刷新状�?/button>
             <span id="refreshTime"></span>
         </div>
         <table class="info-table" id="infoTable">
-            <tr><td colspan="2" style="text-align:center;color:#999;">加载�?..</td></tr>
+            <tr><td colspan="2" style="text-align:center;color:#999;">加载�?..</td></tr>
         </table>
     </div>
 
-    <!-- 右侧：配�?+ 趋势 + 伸缩 -->
+    <!-- 右侧：配�?+ 趋势 + 伸缩 -->
     <div class="right-panel">
         <div class="card" id="configCard">
             <h2>修改配置</h2>
             <div class="form-grid">
                 <div class="form-group">
-                    <label>核心线程�?(corePoolSize)</label>
+                    <label>核心线程�?(corePoolSize)</label>
                     <input type="number" id="corePoolSize" min="1" max="500" onchange="validateCoreMax()">
                 </div>
                 <div class="form-group">
@@ -104,10 +104,10 @@
                 <div class="form-group">
                     <label>时间单位 (timeUnit)</label>
                     <select id="timeUnit">
-                        <option value="SECONDS">SECONDS - �?/option>
+                        <option value="SECONDS">SECONDS - �?/option>
                         <option value="MINUTES">MINUTES - 分钟</option>
                         <option value="HOURS">HOURS - 小时</option>
-                        <option value="DAYS">DAYS - �?/option>
+                        <option value="DAYS">DAYS - �?/option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -137,7 +137,7 @@
                 <button class="btn btn-primary" onclick="applyConfig()">应用配置（即时生效）</button>
                 <button class="btn btn-reset" onclick="loadConfig()">重置表单</button>
             </div>
-            <div class="note">所有字段均可选，仅修改传了值的项。每次提交都会更新配置并重建线程池，即时生效�?/div>
+            <div class="note">所有字段均可选，仅修改传了值的项。每次提交都会更新配置并重建线程池，即时生效�?/div>
         </div>
 
         <!-- 历史趋势 -->
@@ -147,10 +147,10 @@
                 <div class="refresh-bar">
                     <button class="btn btn-reset" onclick="refreshMetrics()" style="padding:5px 14px;">刷新</button>
                     <select id="metricRange" onchange="refreshMetrics()" style="padding:5px 8px;border:1px solid #d9d9d9;border-radius:4px;font-size:12px;">
-                        <option value="5">最�?5 分钟</option>
-                        <option value="15">最�?15 分钟</option>
-                        <option value="30">最�?30 分钟</option>
-                        <option value="60">最�?1 小时</option>
+                        <option value="5">最�?5 分钟</option>
+                        <option value="15">最�?15 分钟</option>
+                        <option value="30">最�?30 分钟</option>
+                        <option value="60">最�?1 小时</option>
                     </select>
                 </div>
                 <div class="chart-grid">
@@ -170,7 +170,7 @@
                         <input type="checkbox" id="scaleEnabled" onchange="toggleScaleEnabled()">
                         <span class="slider"></span>
                     </label>
-                    <span style="font-size:13px;" id="scaleStatusLabel">加载�?..</span>
+                    <span style="font-size:13px;" id="scaleStatusLabel">加载�?..</span>
                 </div>
                 <div style="font-size:12px;color:#666;margin-bottom:8px;" id="scaleRules"></div>
                 <div style="font-weight:600;font-size:13px;margin-bottom:4px;">伸缩事件</div>
@@ -219,20 +219,20 @@ async function refreshInfo() {
         if (!resp.ok) throw new Error(await resp.text());
         const data = await resp.json();
         document.getElementById('infoTable').innerHTML = buildInfoRows(data);
-        document.getElementById('refreshTime').textContent = '最后更�? ' + new Date().toLocaleTimeString();
+        document.getElementById('refreshTime').textContent = '最后更�? ' + new Date().toLocaleTimeString();
     } catch (e) {
-        document.getElementById('infoTable').innerHTML = '<tr><td colspan="2" style="text-align:center;color:#cf1322;">获取状态失�?/td></tr>';
+        document.getElementById('infoTable').innerHTML = '<tr><td colspan="2" style="text-align:center;color:#cf1322;">获取状态失�?/td></tr>';
     }
 }
 
 function buildInfoRows(data) {
-    const keys = ['核心线程�?,'最大线程数','当前线程�?,'活跃线程�?,'已完成任务数','总任务数','队列类型','队列大小','队列剩余容量','存活时间','拒绝策略'];
+    const keys = ['核心线程�?,'最大线程数','当前线程�?,'活跃线程�?,'已完成任务数','总任务数','队列类型','队列大小','队列剩余容量','存活时间','拒绝策略'];
     let html = '';
     keys.forEach(k => {
         const v = (data[k] != null ? data[k] : '-');
         let tag = '';
-        if (k === '活跃线程�? && parseInt(v) > 0) tag = ' <span class="tag tag-green">运行�?/span>';
-        else if (k === '队列大小' && parseInt(v) > 0) tag = ' <span class="tag tag-orange">有积�?/span>';
+        if (k === '活跃线程�? && parseInt(v) > 0) tag = ' <span class="tag tag-green">运行�?/span>';
+        else if (k === '队列大小' && parseInt(v) > 0) tag = ' <span class="tag tag-orange">有积�?/span>';
         html += '<tr><td>' + k + '</td><td>' + v + tag + '</td></tr>';
     });
     return html;
@@ -257,7 +257,7 @@ async function loadConfig() {
 async function applyConfig() {
     if (!validateCoreMax()) { showMsg('核心线程数不能大于最大线程数', 'error'); return; }
     const btn = document.querySelector('#configCard .btn-primary');
-    btn.disabled = true; btn.textContent = '提交�?..';
+    btn.disabled = true; btn.textContent = '提交�?..';
     try {
         const dto = {
             corePoolSize: parseInt(document.getElementById('corePoolSize').value),
@@ -306,7 +306,7 @@ async function refreshMetrics() {
         const resp = await fetch(API_BASE + '/executor/metrics/history?minutes=' + mins);
         if (!resp.ok) throw new Error(await resp.text());
         const data = await resp.json();
-        if (!charts.chartActive) { makeChart('chartActive', '活跃线程�?, '#4a6cf7'); makeChart('chartQueue', '队列大小', '#e65100'); makeChart('chartCompleted', '已完成任务数', '#2e7d32'); }
+        if (!charts.chartActive) { makeChart('chartActive', '活跃线程�?, '#4a6cf7'); makeChart('chartQueue', '队列大小', '#e65100'); makeChart('chartCompleted', '已完成任务数', '#2e7d32'); }
         const labels = data.map(d => new Date(d.createTime).toLocaleTimeString());
         updateChart('chartActive', labels, data.map(d => d.activeCount));
         updateChart('chartQueue', labels, data.map(d => d.queueSize));
@@ -329,10 +329,10 @@ async function refreshScaleStatus() {
         if (!resp.ok) throw new Error(await resp.text());
         const data = await resp.json();
         document.getElementById('scaleEnabled').checked = data.enabled;
-        document.getElementById('scaleStatusLabel').textContent = data.enabled ? '已启�? : '已停�?;
+        document.getElementById('scaleStatusLabel').textContent = data.enabled ? '已启�? : '已停�?;
         const rules = data.scaleUp && data.scaleDown
-            ? '扩容: 队列使用�?' + data.scaleUp.queueUsagePercent + '% �?+' + data.scaleUp.delta
-              + ' | 缩容: 活跃占比<' + (data.scaleDown.activeThreadRatio*100) + '% 连续' + data.scaleDown.consecutiveChecks + '�?
+            ? '扩容: 队列使用�?' + data.scaleUp.queueUsagePercent + '% �?+' + data.scaleUp.delta
+              + ' | 缩容: 活跃占比<' + (data.scaleDown.activeThreadRatio*100) + '% 连续' + data.scaleDown.consecutiveChecks + '�?
             : '';
         document.getElementById('scaleRules').textContent = rules;
     } catch (e) { document.getElementById('scaleStatusLabel').textContent = '获取失败'; }
@@ -350,7 +350,7 @@ async function refreshScaleHistory() {
             const arrow = e.direction === 'UP' ? '&#8593; 扩容' : '&#8595; 缩容';
             return '<div class="event-item"><span class="event-time">' + new Date(e.time).toLocaleTimeString() + '</span>'
                 + '<span class="' + cls + '">' + arrow + '</span>'
-                + '<span>core:' + e.oldCore + '�? + e.newCore + ' max:' + e.oldMax + '�? + e.newMax + '</span>'
+                + '<span>core:' + e.oldCore + '�? + e.newCore + ' max:' + e.oldMax + '�? + e.newMax + '</span>'
                 + '<span style="font-size:11px;color:#999;">' + e.reason + '</span></div>';
         }).join('');
     } catch (e) {}
@@ -362,7 +362,7 @@ async function toggleScaleEnabled() {
         await fetch(API_BASE + '/executor/scale/status', {
             method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: checked })
         });
-        document.getElementById('scaleStatusLabel').textContent = checked ? '已启�? : '已停�?;
+        document.getElementById('scaleStatusLabel').textContent = checked ? '已启�? : '已停�?;
     } catch (e) { showMsg('切换失败: ' + e.message, 'error'); document.getElementById('scaleEnabled').checked = !checked; }
 }
 
